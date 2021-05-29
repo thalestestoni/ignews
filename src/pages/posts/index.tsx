@@ -2,9 +2,22 @@ import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Prismic from '@prismicio/client';
 import { getPrismicClient } from '../../services/prismic';
+import { RichText } from 'prismic-dom';
+
 import styles from './styles.module.scss';
 
-export default function Posts() {
+type Post = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  updatedAt: string;
+}
+
+interface PostsProps {
+  posts: Post[];
+}
+
+export default function Posts({ posts }: PostsProps) {
   return (
     <>
       <Head>
@@ -13,26 +26,13 @@ export default function Posts() {
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href="">
-            <time>29 de maio de 2021</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>Late in the afternoon of May 24, 2021, Tessa Kriesel was informed by her leadership at Fast that the team she was hired to lead, DevRel (Developer Relations), would own Documentation. The day was wrapping up, and Tessa would follow up with direction for the direction for said documentation on the next working day.</p>
-          </a>
-          <a href="">
-            <time>29 de maio de 2021</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>Late in the afternoon of May 24, 2021, Tessa Kriesel was informed by her leadership at Fast that the team she was hired to lead, DevRel (Developer Relations), would own Documentation. The day was wrapping up, and Tessa would follow up with direction for the direction for said documentation on the next working day.</p>
-          </a>
-          <a href="">
-            <time>29 de maio de 2021</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>Late in the afternoon of May 24, 2021, Tessa Kriesel was informed by her leadership at Fast that the team she was hired to lead, DevRel (Developer Relations), would own Documentation. The day was wrapping up, and Tessa would follow up with direction for the direction for said documentation on the next working day.</p>
-          </a>
-          <a href="">
-            <time>29 de maio de 2021</time>
-            <strong>Creating a Monorepo with Lerna & Yarn Workspaces</strong>
-            <p>Late in the afternoon of May 24, 2021, Tessa Kriesel was informed by her leadership at Fast that the team she was hired to lead, DevRel (Developer Relations), would own Documentation. The day was wrapping up, and Tessa would follow up with direction for the direction for said documentation on the next working day.</p>
-          </a>
+          {posts.map(post => (
+            <a key={post.slug} href="#">
+              <time>{post.updatedAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
@@ -49,9 +49,22 @@ export const getStaticProps: GetStaticProps = async () => {
     pageSize: 100
   });
 
+  const posts = response.results.map(post => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+      excerpt: post.data.content.find(content => content.type === 'paragraph')?.text ?? '',
+      updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      })
+    }
+  })
+
   return {
     props: {
-
+      posts
     }
   }
 }
