@@ -5,15 +5,13 @@ import { RichText } from "prismic-dom";
 import { getPrismicClient } from "../../services/prismic";
 
 import styles from './post.module.scss';
-
-type Post = {
-  slug: string;
-  title: string;
-  content: string;
-  updatedAt: string;
-}
 interface PostProps {
-  post: Post;
+  post: {
+    slug: string;
+    title: string;
+    content: string;
+    updatedAt: string;
+  };
 }
 
 export default function Post({ post }: PostProps) {
@@ -54,12 +52,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req, params }) =>
 
   const response = await prismic.getByUID('post', String(slug), {});
 
-  const postData: Post = response.data;
-
   const post = {
     slug,
-    title: RichText.asText(postData.title),
-    content: RichText.asHtml(postData.content),
+    title: RichText.asText(response.data.title),
+    content: RichText.asHtml(response.data.content),
     updatedAt: new Date(response.last_publication_date).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
